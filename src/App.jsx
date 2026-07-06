@@ -312,10 +312,12 @@ export default function App() {
   // ---- upload ----
   const handleFile = (file)=>{
     if (!file) return;
-    if (!/image\/(jpeg|jpg|png|webp)/.test(file.type)) { setToast('Unsupported format — use JPG, PNG or WEBP'); return; }
+    if (!file.type.startsWith('image/')) { setToast('Unsupported format — use JPG, PNG or WEBP'); return; }
     if (file.size > 10*1024*1024) { setToast('File too large — keep under 10MB'); return; }
     const reader = new FileReader();
-    reader.onload = (ev)=>{ const img=new Image(); img.onload=()=>{
+    reader.onload = (ev)=>{ const img=new Image();
+      img.onerror=()=>setToast('Could not read that image — try JPG, PNG or WEBP');
+      img.onload=()=>{
       setImage(img); originalRef.current = img; setUsingSample(false);
       const def = makeDefaults();
       setState(def); setModule('frame'); setAutoOn(false);
@@ -375,7 +377,7 @@ export default function App() {
         </div>}
         <div className="spacer-mid"></div>
         <div className="topbar-right">
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={e=>handleFile(e.target.files[0])} />
+          <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={e=>{handleFile(e.target.files[0]); e.target.value='';}} />
           <button className="btn ghost" onClick={()=>fileRef.current.click()} title="Upload image"><Icon.upload/> <span className="blabel">Upload</span></button>
           <div className="undo-group">
             <button className="btn ghost undo-btn" onClick={undo} disabled={!canUndo} title="Undo (⌘Z)" aria-label="undo" style={{opacity:canUndo?1:0.3, cursor:canUndo?'pointer':'not-allowed'}}><Icon.undo/></button>
